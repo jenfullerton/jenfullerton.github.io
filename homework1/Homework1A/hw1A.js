@@ -11,7 +11,7 @@ var container;
 var camera, scene, renderer;
 
 // geometry objects
-var mesh1, mesh2, mesh;
+var mesh1, mesh2, mesh3, mesh;
 var material;
 var texture1;
 
