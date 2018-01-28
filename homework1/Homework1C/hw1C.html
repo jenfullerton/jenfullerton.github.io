@@ -1,0 +1,218 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>HW1C - jfullert - cell automata</title>
+		<meta charset="utf-8">
+		<style>
+			body {
+			  	margin: 0px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+<body>
+
+<div id="container"></div>
+
+    <script src="../lib/three.min.js"></script>
+    <script src="hw1C.js"  type="text/javascript"></script>
+
+    <p>I call this one... Salt and Pepper Tripping</p>
+  
+
+    <script id="vertexShader" type="x-shader/x-vertex">
+	uniform mat4 modelViewMatrix;
+    uniform mat4 projectionMatrix;
+
+	attribute vec3 position;
+	
+    	void main() {
+ 		gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+	}
+
+    </script>
+
+    <script id="fragmentShader" type="x-shader/x-fragment">
+
+		precision mediump float;
+
+		uniform vec2 textureSize; //The width and height of our screen
+		uniform sampler2D bufferTexture; //Our input texture
+		
+		void main() {
+
+			vec2 pt = gl_FragCoord.xy; //for simple scenes, can also use gl_FragCoord instead of uv info, divide by texture size to get a value between 0.0 and 1.0
+			vec4 C = texture2D( bufferTexture, vec2( pt.x/textureSize.x, pt.y/textureSize.y ) );
+
+			float cx = pt.x/textureSize.x;
+
+			float left = cx - 1.0/textureSize.x;
+			if (left < 0.0) { left = 1.0; }
+			float right = cx + 1.0/textureSize.x;
+			if (left > 1.0) { left = 0.0; }
+
+
+			float cy = pt.y/textureSize.y;
+			
+			float down = cy - 1.0/textureSize.y;
+			if (down < 0.0) { down = 1.0; }
+			float up = cy + 1.0/textureSize.y;
+			if (up > 1.0) { up = 0.0; }
+
+
+			vec4 arr[8];
+
+			arr[0] = texture2D( bufferTexture, vec2( cx   , up ));   //N
+			arr[1] = texture2D( bufferTexture, vec2( right, up ));   //NE
+			arr[2] = texture2D( bufferTexture, vec2( right, cy ));   //E
+			arr[3] = texture2D( bufferTexture, vec2( right, down )); //SE
+			arr[4] = texture2D( bufferTexture, vec2( cx   , down )); //S
+			arr[5] = texture2D( bufferTexture, vec2( left , down )); //SW
+			arr[6] = texture2D( bufferTexture, vec2( left , cy ));   //W
+			arr[7] = texture2D( bufferTexture, vec2( left , up ));   //NW
+
+			int cntR = 0;
+			int cntG = 0;
+			int cntB = 0;
+			// count which cells have large amounts of red, green, and/or blue
+			for(int i=0;i<8;i++){
+				if (arr[i].r > 0.7) {
+					cntR++;
+				}
+				if (arr[i].g > 0.7) {
+					cntG++;
+				}
+				if (arr[i].b > 0.7) {
+					cntB++;
+				}
+			}
+
+
+/* 
+			int cnt = 0;
+			for(int i=0;i<8;i++){
+				if (arr[i].r > 0.5) {
+					cnt++;
+				}
+			}
+				 
+				       
+			if (C.g >= 0.5) { //cell is alive
+				if (cnt == 2 || cnt == 3) {
+					//Any live cell with two or three live neighbours lives on to the next generation.
+				
+					gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+				} else {
+					//Any live cell with fewer than two live neighbours dies, as if caused by underpopulation.
+					//Any live cell with more than three live neighbours dies, as if by overpopulation.
+
+					gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+				}
+			} else { //cell is dead
+				if (cnt == 3) {
+					//Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
+
+					gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+				} else {
+					gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+
+				}
+			}
+
+			*/
+
+			vec3 totalColor = vec3(C.rgb);
+			float influence = 0.01; // lower number = slows down peppering
+
+			// if all 3 colors are equal, reduce back to black
+			if (C.r == 1.0 && C.b == 1.0 && C.g == 1.0) {
+				totalColor = vec3(0.0,0.0,0.0);
+			} else {	// perform individual comparisons
+				// RED-GREEN COMPARISONS
+				if(cntR == cntG){
+					// if equal influence red and green, increase yellow
+					totalColor.rg += influence*2.0;
+					totalColor.b += influence;
+				}
+				else if (cntR > cntG) {
+					// if red more influence over green, increase red/decrease green
+					totalColor.r += influence;
+					totalColor.g -= influence;
+				}
+				else { // green has greater influence than red
+					// increase green, reduce red
+					totalColor.r -= influence;
+					totalColor.g += influence;
+				}
+				
+
+				// RED-BLUE COMPARISONS
+				if(cntR == cntB){
+					// if equal influence red and blue, increase magenta
+					totalColor.rb += influence*2.0;
+					totalColor.g += influence;
+				}
+				else if (cntR > cntB) {
+					// if red more influence over blue, increase red/decrease blue
+					totalColor.r += influence;
+					totalColor.b -= influence;
+				} else { // blue has greater influence than red
+					// increase blue, reduce red
+					totalColor.r -= influence;
+					totalColor.b += influence;
+				}
+
+				// GREEN-BLUE COMPARISONS
+				if(cntG == cntB){
+					// if equal influence green and blue, increase magenta
+					totalColor.gb += influence*2.0;
+					totalColor.r += influence;
+				}
+				else if (cntG > cntB) {
+					// if green more influence over blue, increase green/decrease blue
+					totalColor.g += influence;
+					totalColor.b -= influence;
+				}
+				else { // blue has greater influence than green
+					// increase blue, reduce green
+					totalColor.g -= influence;
+					totalColor.b += influence;
+				}
+			}
+
+			
+			// set final color based on collected data
+			gl_FragColor = vec4(  clamp(totalColor, 0.0, 1.0)  , 1.0);
+
+		 }
+	</script>
+
+
+
+	<script>
+		
+
+var scene;
+var camera;
+var renderer;
+
+var resX = 300;
+var resY = 300;
+
+var bufferScene;
+var bufferMaterial;
+var bufferObject;
+var FBO_A, FBO_B;
+var plane;
+var fullScreenQuad;
+
+scene_setup(); //initialize the Three.js scene
+FBO_setup();
+render();
+
+	</script>
+
+</body>
+</html>
+
