@@ -52,6 +52,7 @@ function init() {
 	// geometry
 	var geometry1 = new THREE.SphereGeometry( 1, 64, 64 );
     var geometry2 = new THREE.BoxGeometry( 1, 1, 1 );
+    var geometry3 = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
 
 	// materials (ie, linking to the shader program)
     var uniforms =  {
@@ -80,6 +81,11 @@ function init() {
     mesh2 = new THREE.Mesh( geometry2, material );
 	mesh2.translateX(0.0);
     scene.add( mesh2 );
+
+    mesh3 = new THREE.Mesh( geometry3, material );
+	mesh3.translateX(2.5);
+	mesh3.scale.set(0.05, 0.05, 0.05);
+    scene.add( mesh3 );
 
     texture1 = createDataTexture();
     var loader = new THREE.JSONLoader();
