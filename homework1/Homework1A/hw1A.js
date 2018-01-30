@@ -83,7 +83,27 @@ function init() {
 
 	// texture stuff - mesh2
 	texture1 = new THREE.TextureLoader().load( 'blueWave.png' );
-	createTextureObject();
+	
+	var tx_uniforms = {
+		t1: { type: "t", value: texture1  },
+	}
+
+	var tx2_uniforms = {
+		t1: { type: "t", value: texture1  },
+		ambient: { type: "v3", value: ambient },
+		light1_pos: { type: "v3", value: light1_pos },
+		light1_diffuse: { type: "v3", value: light1_diffuse },
+		light1_specular:  { type: "v3", value: light1_specular },
+		light2_pos: { type: "v3", value: light2_pos },
+		light2_diffuse: { type: "v3", value: light2_diffuse },
+		light2_specular:  { type: "v3", value: light2_specular },
+		light3_pos: { type: "v3", value: light3_pos },
+		light3_diffuse: { type: "v3", value: light3_diffuse },
+		light3_specular:  { type: "v3", value: light3_specular },
+	}
+
+	//createTextureObject(tx_uniforms);
+	createTextureObject(tx2_uniforms);
 
 	mesh3 = new THREE.Mesh( geometry3, material );
 	mesh3.translateX(2.5);
@@ -147,6 +167,10 @@ function render() {
 	// light3_pos = 2.5,-10.0,-2.5
 	material.uniforms.light3_pos.value = new THREE.Vector3(-2.5+lightPosAdjust/2, -10.0, -2.5+lightPosAdjust);
 
+	// lights for textured object
+	material2.uniforms.light1_pos.value = new THREE.Vector3(lightPosAdjust, 10.0, 0.0);
+	material2.uniforms.light2_pos.value = new THREE.Vector3(-10.0, -lightPosAdjust, 2.0);
+	material2.uniforms.light3_pos.value = new THREE.Vector3(-2.5+lightPosAdjust/2, -10.0, -2.5+lightPosAdjust);
 
 
 	renderer.render( scene, camera );
@@ -170,7 +194,7 @@ function onWindowResize( event ) {
 loads a texture and adds it to a mesh, then adds that to
 the scene
 */
-function createTextureObject() {
+function createTextureObject(tx_uniforms) {
 	
 		var geometry = new THREE.BufferGeometry();
 
@@ -201,17 +225,20 @@ function createTextureObject() {
 		geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
 		geometry.addAttribute( 'uv', new THREE.BufferAttribute( texCoords, 2 ) );
 
-
+/*
 		// materials (ie, linking to the shader program)
 		var uniforms = {
     			t1: { type: "t", value: texture1  },
 		};
+		*/
 	
 
      	material2 = new THREE.RawShaderMaterial( {
-			uniforms: 	uniforms,
-            vertexShader: vs_tx,
-            fragmentShader: fs_tx,	
+			uniforms: 	tx_uniforms,
+            //vertexShader: vs_tx,
+            //fragmentShader: fs_tx,	
+            vertexShader: vs_PT,
+            fragmentShader: fs_PT,
 		} );
 
 
