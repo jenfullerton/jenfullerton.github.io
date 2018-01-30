@@ -146,13 +146,16 @@
 
 
   <script id="vertexShader_tx" type="x-shader/x-vertex">
+    // given to us automatically by perspective camera
     uniform mat4 modelMatrix;
     uniform mat4 viewMatrix;
     uniform mat4 projectionMatrix;
 
+    // defined manually in BufferGeometry
     attribute vec3 position; 
     attribute vec2 uv;
 
+    // link to frag shader
     varying vec2 vUV;
 
     void main() {

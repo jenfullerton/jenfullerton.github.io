@@ -11,8 +11,8 @@ var container;
 var camera, scene, renderer;
 
 // geometry objects
-var mesh1, mesh2, mesh3, mesh;
-var material;
+var mesh1, mesh2, mesh3;
+var material, material2;
 var texture1;
 
 
@@ -31,7 +31,7 @@ function init() {
 	scene = new THREE.Scene();
 
 
-    // lights
+    // lights - phong shader
     var ambient = new THREE.Vector3(0.1,0.1,0.1);
 
 	var light1_pos = new THREE.Vector3(0.0,10.0,0.0); //from above
@@ -52,7 +52,9 @@ function init() {
 	// geometry
 	var geometry1 = new THREE.SphereGeometry( 1, 64, 64 );
     var geometry2 = new THREE.BoxGeometry( 1, 1, 1 );
-    var geometry3 = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
+    //var geometry3 = new THREE.TorusKnotGeometry( 10, 3, 100, 16 );
+    var geometry3 = new THREE.IcosahedronGeometry();
+
 
 	// materials (ie, linking to the shader program)
     var uniforms =  {
@@ -68,6 +70,7 @@ function init() {
 		light3_specular:  { type: "v3", value: light3_specular },
 	};
 
+	// phong shader material
  	material = new THREE.RawShaderMaterial( {
 		uniforms: uniforms,
 		vertexShader: vs_ph,
@@ -78,18 +81,13 @@ function init() {
 	mesh1.translateX(-2.5);
     scene.add( mesh1 );
 
-    mesh2 = new THREE.Mesh( geometry2, material );
-	mesh2.translateX(0.0);
-    scene.add( mesh2 );
+	// texture stuff - mesh2
+	texture1 = new THREE.TextureLoader().load( 'blueWave.png' );
+	createTextureObject();
 
-    mesh3 = new THREE.Mesh( geometry3, material );
+	mesh3 = new THREE.Mesh( geometry3, material );
 	mesh3.translateX(2.5);
-	mesh3.scale.set(0.05, 0.05, 0.05);
     scene.add( mesh3 );
-
-    texture1 = createDataTexture();
-    var loader = new THREE.JSONLoader();
-	loader.load( 'dragon.js', processBlenderObject );
 
 	renderer = new THREE.WebGLRenderer();
 	renderer.setClearColor( 0x999999 );
@@ -119,11 +117,37 @@ function render() {
 
 	var time = performance.now();
 
-	mesh2.rotation.x = time * 0.00005;
+	// mesh1 doing some slow circles
+	mesh1.translateX(Math.cos(time*0.001)*0.005);
+	mesh1.translateZ(Math.sin(time*0.001)*0.005);
+
+	// mesh 2 rolling in space
+	//mesh2.rotation.x = time * 0.0005;
 	mesh2.rotation.y = time * 0.0005;
 
+	// sin() generally controls cycle frequence
+	// outer number generally controls how big the loop is
+	// mesh 3 is having fun
+	mesh3.translateY(Math.sin(time*0.005)*0.01);
+	mesh3.rotation.z = time * 0.0005;
+
+	// FUN LIGHTS!
+	// light slowly increses over time, then drops back to black
+	//var lightVariance = ((time * 0.05)%255)/255;
+	// light slowly fluctuates between maximum brightness and darkness
+	//var lightVariance = Math.sin(time*0.001)
+
 	//if I want to update the lights, I acutally have to update the material used by each object in the scene. 
-	//material.uniforms.light1_diffuse.value = new THREE.Vector3(0.0,1.0,0.0);
+	//material.uniforms.light1_diffuse.value = new THREE.Vector3(lightVariance, 0.0,0.0);
+	var lightPosAdjust = Math.sin(time*0.005)*5;
+	// light1_pos = 0.0, 10.0, 0.0
+	material.uniforms.light1_pos.value = new THREE.Vector3(lightPosAdjust, 10.0, 0.0);
+	// light2_pos = -10.0,0.0,2.0
+	material.uniforms.light2_pos.value = new THREE.Vector3(-10.0, -lightPosAdjust, 2.0);
+	// light3_pos = 2.5,-10.0,-2.5
+	material.uniforms.light3_pos.value = new THREE.Vector3(-2.5+lightPosAdjust/2, -10.0, -2.5+lightPosAdjust);
+
+
 
 	renderer.render( scene, camera );
 }
@@ -142,58 +166,57 @@ function onWindowResize( event ) {
 }
 
 
-/* processBlenderObject
-from class example "loadJSONObjectAndAddTexture.html"
-loads a blender object saved as a JSON
+/* createTextureObject()
+loads a texture and adds it to a mesh, then adds that to
+the scene
 */
-function processBlenderObject (geometry, materials) {
+function createTextureObject() {
+	
+		var geometry = new THREE.BufferGeometry();
 
-	//var useGeometry = new THREE.BufferGeometry().fromGeometry( geometry );
-	var useGeometry = geometry;
+		var vertices = new Float32Array( [
+			-1.0, -1.0, 0.0,
+			+1.0, -1.0, 0.0,
+			+1.0, +1.0, 0.0,
+	 
+			-1.0, -1.0, 0.0,
+			+1.0, +1.0, 0.0,
+			-1.0, +1.0, 0.0,
+
+		] );
+
+		var texCoords = new Float32Array( [
+			0.0, 0.0,
+			1.0, 0.0,
+			1.0, 1.0,
+			
+			0.0, 0.0,
+			1.0, 1.0,
+			0.0, 1.0,
+		] );
 
 
-	var uniforms = { t1: { type: "t", value: texture1  }};
 
-	var material = new THREE.RawShaderMaterial( {
-		uniforms: uniforms,
-		vertexShader: vs_tx,
-		fragmentShader: fs_tx,	
-	} );
+		// itemSize = 3 because there are 3 values (components) per vertex
+		geometry.addAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+		geometry.addAttribute( 'uv', new THREE.BufferAttribute( texCoords, 2 ) );
 
 
-	mesh = new THREE.Mesh( useGeometry, material );
+		// materials (ie, linking to the shader program)
+		var uniforms = {
+    			t1: { type: "t", value: texture1  },
+		};
+	
+
+     	material2 = new THREE.RawShaderMaterial( {
+			uniforms: 	uniforms,
+            vertexShader: vs_tx,
+            fragmentShader: fs_tx,	
+		} );
 
 
-	//positioning and scaling blender obj so that it's in the center of the screen
-	mesh.position.set( 0, -1.5, 0 );
-	var s = 1.0;
-	mesh.scale.set( s, s, s );
-	mesh.rotation.y = -Math.PI / 4;
-
-	scene.add( mesh );
-}
-
-function createDataTexture() {
-
-	// create a buffer with color data
-
-	var resX = 25;
-	var resY = 25;
-
-	var size = resX * resY;
-	var data = new Uint8Array( 4 * size );
-
-	for ( var i = 0; i < size; i++ ) {
-		var stride = i * 4;
-
-		data[ stride ] = Math.random() * 255;
-		data[ stride + 1 ] = Math.random() * 255;;
-		data[ stride + 2 ] = Math.random() * 255;;
-		data[ stride + 3 ] = 255;
-	}
-
-	var texture = new THREE.DataTexture( data, resX, resY, THREE.RGBAFormat );
-	texture.needsUpdate = true; // just a weird thing that Three.js wants you to do after you set the data for the texture
-
-	return texture;
+	    mesh2 = new THREE.Mesh( geometry, material2 );
+		mesh2.translateX(0.0);
+		mesh2.material.side = THREE.DoubleSide; //to render both sides of triangle
+        scene.add( mesh2 );
 }
