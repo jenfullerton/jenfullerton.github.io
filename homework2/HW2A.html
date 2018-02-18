@@ -1,0 +1,104 @@
+<!-- Jennifer Fullerton		-->
+<!-- CMPM 163, Homework2-A	-->
+<!-- February 16, 2018		-->
+<!-- HW2A.html					-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>jfullert - HW2A </title>
+	<meta charset="utf-8">
+	<style>
+		body {
+			margin: 0px;
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="container"></div>
+
+	<script type="text/javascript" src="lib/three.min.js"></script>
+	<script type="text/javascript" src="lib/OrbitControls.js"></script>
+	<script type="text/javascript" src="lib/dat.gui.min.js"></script>
+	<!-- Lucas's engine, shaders, and objects -->
+	<script type="text/javascript" src="2A_js/engine.js"></script>
+	<script type="text/javascript" src="2A_js/skybox.js"></script>
+	<script type="text/javascript" src="2A_js/noiseTerrain.js"></script>
+	<script type="text/javascript" src="2A_js/water.js"></script>
+
+	<!-- main -->
+	<script type="text/javascript">
+		// 0.0 - whatever this line means
+		var container = document.getElementById('container');
+
+		// 0. Create a renderer
+		var renderer = new THREE.WebGLRenderer();
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		document.body.appendChild(renderer.domElement);
+
+		// 1.0 Create a Scene with options
+		var scene = new THREE.Scene();
+		// 1.1 Set up Camera
+		var camera = new THREE.PerspectiveCamera(50.0, window.innerWidth/window.innerHeight, 0.1, 1000);
+		// 1.2 Camera Orbit Controls using OrbitControls library
+		var controls = new THREE.OrbitControls( camera );
+		camera.position.z = 5;
+		camera.position.y += 3;
+		controls.update();
+
+		// 1.3 GUI for Scene options
+		var gui = new dat.GUI({width:350});
+		var sceneOptions = {
+			terrainSeed: 1.0,
+			terrainDisplacement: 2.0,
+			seaLevel: -0.1,
+			landscapeBreathe: false,
+		}
+
+		gui.add(sceneOptions, "terrainSeed", 0.0, 5.0);
+		gui.add(sceneOptions, "terrainDisplacement", -5.0, 5.0);
+		gui.add(sceneOptions, "seaLevel", -2.0, 4.0);
+		gui.add(sceneOptions, "landscapeBreathe", false, true);
+
+
+
+		// 2. Create objects in scene
+		// 2.1 Create a Skybox
+		var skyBox = createSkyBox(1000, [
+				// posx, negx, posy, negy, posz, negz
+				'img/sky1/sky_posx.png',
+				'img/sky1/sky_negx.png',
+				'img/sky1/sky_posy.png',
+				'img/sky1/sky_negy.png',
+				'img/sky1/sky_posz.png',
+				'img/sky1/sky_negz.png',
+			]);
+		scene.add(skyBox);
+
+		// 2.2 Create Noise Terrain
+		// please lordt jesus help me
+		var noiseTerrain = createNoiseTerrain(10,10,300,300, 'img/mossBottom.jpg', 'img/sand.jpg', 'img/grass.jpg', sceneOptions);
+		scene.add(noiseTerrain);
+
+		// 2.3 Create reflective water
+		var water = createWater(10, 10, 300, 300, [
+				// posx, negx, posy, negy, posz, negz
+				'img/sky1/sky_posx.png',
+				'img/sky1/sky_negx.png',
+				'img/sky1/sky_posy.png',
+				'img/sky1/sky_negy.png',
+				'img/sky1/sky_posz.png',
+				'img/sky1/sky_negz.png',
+			]);
+		scene.add(water);
+
+		// 3. Set up and start the engine
+		CMENGINE.Start(scene, renderer, camera);
+		CMENGINE.Update();
+
+	</script>
+
+</body>
+</html>
