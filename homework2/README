@@ -14,3 +14,6 @@ poppies: me!
 skyboxes:
 1. < http://mi.eng.cam.ac.uk/~agk34/resources/textures/sky/ >
 2. < http://www.custommapmakers.org/skyboxes.php > I grabbed a couple from here
+
+RGB to hexadecimal conversion:
+ < https://campushippo.com/lessons/how-to-convert-rgb-colors-to-hexadecimal-with-javascript-78219fdb >
