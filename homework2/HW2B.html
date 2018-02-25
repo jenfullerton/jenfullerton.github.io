@@ -28,7 +28,7 @@
 	<!-- <script src="lib/TrackballControls.js"></script> -->
 	<script type="text/javascript" src="lib/dat.gui.min.js"></script>
 	<script src="lib/GPUParticleSystem.js"></script>
-	<script type="text/javascript" src="lib/TrackballControls.js"></script>
+	<script type="text/javascript" src="lib/TrackballControls"></script>
 
 	<!-- Lucas's engine, shaders, and objects -->
 	<script type="text/javascript" src="2B_js/pointSprites.js"></script>
@@ -38,9 +38,9 @@
 		var camera, tick = 0,
 			scene, renderer, clock = new THREE.Clock(),
 			controls, container, gui = new dat.GUI( { width: 350 } ),
-			options, spawnerOptions, particleSystem;
+			options, spawnerOptions, musicOptions, particleSystem;
 
-		var pointSprites;
+		var pointSprites, pointSprites2;
 
 		// var colorOptions;
 
@@ -54,7 +54,7 @@
 			container = document.getElementById( 'container' );
 
 			camera = new THREE.PerspectiveCamera( 28, window.innerWidth / window.innerHeight, 1, 10000 );
-			camera.position.z = 100;
+			camera.position.z = 30;
 
 			scene = new THREE.Scene();
 
@@ -80,21 +80,26 @@
 				position: new THREE.Vector3(),
 				positionRandomness: .3,
 				velocity: new THREE.Vector3(),
-				velocityRandomness: .5,
-				color: 0x00ffff,
+				velocityRandomness: 2.0,
+				color: 0xff0000,
 				colorRandomness: .2,
-				turbulence: .5,
-				lifetime: 2,
-				size: 5,
-				sizeRandomness: 1
+				turbulence: 0,
+				lifetime: 7,
+				size: 8,
+				sizeRandomness: 15
 			};
 
 			spawnerOptions = {
-				spawnRate: 15000,
+				spawnRate: 6000,
 				horizontalSpeed: 1.5,
 				verticalSpeed: 1.33,
-				timeScale: 1
+				timeScale: 0.5
 			};
+
+			musicOptions = {
+				oscillateX: false,
+				oscillateY: false,
+			}
 
 			//
 
@@ -105,10 +110,14 @@
 			gui.add( options, "color", 0x000000, 0xffffff);
 			gui.add( options, "colorRandomness", 0, 1 );
 			gui.add( options, "lifetime", .1, 10 );
-			gui.add( options, "turbulence", 0, 1 );
+			//gui.add( options, "turbulence", 0, 1 );
 
 			gui.add( spawnerOptions, "spawnRate", 10, 30000 );
 			gui.add( spawnerOptions, "timeScale", -1, 1 );
+
+			// add music options
+			gui.add( musicOptions, "oscillateX", false, true);
+			gui.add( musicOptions, "oscillateY", false, true);
 
 			// change color of particles
 			//gui.add( colorOptions, "red", 0x00, 0xff);
@@ -116,9 +125,13 @@
 			//gui.add( colorOptions, "blue", 0x00, 0xff);
 
 			// add point sprites bg
-			pointSprites = createBoxOfPoints(200, 20)
+			// (amount, radius, texture path, x, y, z)
+			pointSprites = createBoxOfPoints(200, 20, 'img/particleStar.png', 5, 5, 5);
+			pointSprites2 = createBoxOfPoints(200, 20, 'img/particleStar.png', -5, -5, -5);
 			scene.add( pointSprites );
+			scene.add( pointSprites2 );
 			pointSprites.Start();
+			pointSprites2.Start();
 
 			//
 
@@ -169,9 +182,15 @@
 
 			if ( delta > 0 ) {
 
-				options.position.x = Math.sin( tick * spawnerOptions.horizontalSpeed ) * 20;
-				options.position.y = Math.sin( tick * spawnerOptions.verticalSpeed ) * 10;
-				options.position.z = Math.sin( tick * spawnerOptions.horizontalSpeed + spawnerOptions.verticalSpeed ) * 5;
+				if(musicOptions.oscillateX){
+					options.position.x = Math.sin( tick * spawnerOptions.horizontalSpeed ) * 20;
+				}
+				if(musicOptions.oscillateY){
+					options.position.y = Math.sin( tick ) * 10;
+				}
+				
+				//options.position.y = Math.sin( tick * spawnerOptions.verticalSpeed ) * 10;
+				//options.position.z = Math.sin( tick * spawnerOptions.horizontalSpeed + spawnerOptions.verticalSpeed ) * 5;
 
 				for ( var x = 0; x < spawnerOptions.spawnRate * delta; x++ ) {
 
@@ -188,6 +207,7 @@
 
 			// update pointSprites
 			pointSprites.Update();
+			pointSprites2.Update();
 
 			render();
 
