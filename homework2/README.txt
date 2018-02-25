@@ -9,8 +9,7 @@
  to alter the terrain.
  
  Part B is so far the minimum submission requirements.  It is just a particle system and some point sprites, with some ability
- to adjust color.  I will be adding some functionality to adjust the colors in a more deliberate fashion, and also (hopefully)
- have the sprites all react to music.
+ to adjust color.  The colors are now rainbow and the starting scene/camera position is set up so the viewer has one of the better views to start.
 
 Texture sources:
 grass: < https://www.flickr.com/photos/dyrkwyst/4911988361 >
