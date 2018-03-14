@@ -1,0 +1,54 @@
+<!-- Jennifer Fullerton		-->
+<!-- CMPM 163, Homework2-A	-->
+<!-- March 3, 2018		-->
+<!-- HW3B.html				-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>jfullert - HW3B </title>
+	<meta charset="utf-8">
+	<style>
+		body {
+			margin: 0px;
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="container"></div>
+
+	<!-- load external libraries: three and engine -->
+	<script type="text/javascript" src="lib/three.min.js"></script>
+	<script type="text/javascript" src="lib/engine.js"></script>
+
+	<!-- load external object and shader files -->
+	<script type="text/javascript" src="3B_js/plane_sdf.js"></script>
+
+	<!-- MAIN -->
+	<script type="text/javascript">
+		
+		// 0. Create and set up rendering context
+		var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+
+        // 1. Create a Scene and Camera
+        var scene = new THREE.Scene();
+
+        var camera = new THREE.OrthographicCamera(width/-2.0, width/2.0, height/2.0, height/-2.0, 1, 1000);
+
+        // 2. Create full screen quad
+        var planeSDF = createPlaneSDF(width, height);
+
+        // 3. Add objects to the scene and start engine
+        scene.add(planeSDF);
+
+        CMENGINE.Start(scene, renderer, camera);
+        CMENGINE.Update();
+
+	</script>
